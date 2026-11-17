@@ -22,6 +22,27 @@ def test_permission_is_enforced_before_network(db, settings):
     assert transport.calls == []
 
 
+@pytest.mark.parametrize("proxies", [{}, {"https": "http://127.0.0.1:7890"}])
+def test_system_proxy_is_fixed_and_netrc_disabled(db, settings, monkeypatch, proxies):
+    monkeypatch.setattr("core.scheduler.getproxies", lambda: proxies.copy())
+    service = Scheduler(db, settings)
+    assert service.transport.trust_env is False
+    assert service.transport.proxies == proxies
+    proxies["https"] = "http://127.0.0.1:9999"
+    assert service.transport.proxies.get("https") != proxies["https"]
+    service.transport.close()
+
+
+def test_429_stops_without_automatic_retry(db, settings):
+    settings.retries = 3
+    transport = FakeTransport([FakeResponse(429, headers={"Retry-After": "120"}), FakeResponse(200)])
+    service = scheduler(db, settings, FakeClock(), transport)
+    with pytest.raises(RateLimited):
+        service.request("https://forum.example.com/t/1.json")
+    assert len(transport.calls) == 1
+    assert service.metrics()["cooldown_remaining"] == 120
+
+
 def test_success_keeps_conservative_interval_and_records_metrics(db, settings):
     clock, transport = FakeClock(), FakeTransport([FakeResponse(200, b'{"ok":true}'),
                                                     FakeResponse(200, b'{"ok":true}')])

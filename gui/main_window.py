@@ -551,7 +551,7 @@ class MainWindow(QMainWindow):
         result = []
         for row in range(self.category_table.rowCount()):
             item = self.category_table.item(row, 0)
-            if item and item.checkState() == Qt.Checked and not self.category_table.isRowHidden(row):
+            if item and item.checkState() == Qt.Checked:
                 result.append((item.data(Qt.UserRole), item.data(Qt.UserRole + 1)))
         return result
 
@@ -598,12 +598,19 @@ class MainWindow(QMainWindow):
     def _test_api(self):
         if not self._save_settings(silent=True) or not self._require_permission() or not self._idle():
             return
+        self.connection_badge.setText("正在测试公开 API")
 
         def work(log):
             items = DiscourseClient(self.scheduler).categories()
+            self.database.save_categories(items)
             return f"公开 API 可用，读取到 {len(items)} 个分类"
 
-        self._run_job(work, "验证连接", then=lambda: self.connection_badge.setText("公开 API 可用"))
+        def completed(ok, message):
+            self.connection_badge.setText("公开 API 可用" if ok else "公开 API 测试失败")
+            if ok:
+                self._load_categories()
+
+        self._run_job(work, "验证连接", on_result=completed)
 
     def _start_collection(self):
         if not self._require_permission() or not self._idle():
@@ -927,6 +934,8 @@ class MainWindow(QMainWindow):
             settings = self._settings_from_form()
             settings.validate()
             settings.save(self.home)
+            if settings.base_url.rstrip("/") != self.settings.base_url.rstrip("/"):
+                self.connection_badge.setText("站点已更改，尚未测试")
             self.settings = settings
             self.scheduler.configure(settings)
             self._sync_permission_badges()
@@ -979,22 +988,24 @@ class MainWindow(QMainWindow):
         except AccessDenied as error:
             QMessageBox.warning(self, "无法恢复", str(error))
 
-    def _run_job(self, function, label, then=None):
+    def _run_job(self, function, label, then=None, on_result=None):
         if not self._idle():
             QMessageBox.information(self, "已有任务", "请等待当前后台任务结束，或先取消采集。")
             return
         thread = JobThread(function, self)
         self.active_thread = thread
         thread.log.connect(self.log)
-        thread.completed.connect(lambda ok, message: self._job_done(ok, message, label, then))
+        thread.completed.connect(lambda ok, message: self._job_done(ok, message, label, then, on_result))
         thread.start()
         self.log(f"开始：{label}")
 
-    def _job_done(self, ok, message, label, then):
+    def _job_done(self, ok, message, label, then, on_result=None):
         if ok:
             self.log(f"{label}完成：{message}")
         else:
             self.log(f"{label}失败：{message}")
+        if on_result:
+            on_result(ok, message)
         if then:
             try:
                 then()

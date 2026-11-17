@@ -151,7 +151,8 @@ class DiscourseClient:
         return list(categories.values())
 
     def category_page(self, category, page):
-        path = f"/c/{quote(category['slug'], safe='')}/{category['id']}.json"
+        slug = category["slug"] or f"{category['id']}-category"
+        path = f"/c/{quote(slug, safe='')}/{category['id']}.json"
         data = self.get_json(path, {"page": page, "order": "latest", "ascending": "false",
                                     "no_subcategories": "true"})
         listing = require(data.get("topic_list"), dict, "topic_list")

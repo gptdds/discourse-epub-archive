@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from datetime import timezone
 from email.utils import parsedate_to_datetime
 from urllib.parse import urlsplit
+from urllib.request import getproxies
 
 import requests
 
@@ -55,6 +56,10 @@ class Scheduler:
         self.transport = transport or requests.Session()
         if transport is None:
             self.transport.trust_env = False
+            proxies = getproxies()
+            proxy = proxies.get("https") or proxies.get("all")
+            if proxy:
+                self.transport.proxies["https"] = proxy
             self.transport.headers.update({"User-Agent": "DiscourseEpubArchive/1.0",
                                            "Accept": "application/json,image/*;q=0.9,*/*;q=0.5"})
         self.state = database.get_meta("scheduler", {})
@@ -206,6 +211,8 @@ class Scheduler:
                         delay = max(fallback, self._retry_after(headers, fallback))
                         self._cool(delay, adaptive=status in (429, 503))
                         last_error = RequestError(f"HTTP {status}；全局冷却 {delay:.0f} 秒，尝试 {attempt + 1}")
+                        if status == 429:
+                            raise RateLimited(str(last_error))
                         continue
                     if status >= 300:
                         raise RequestError(f"HTTP {status}：{url}（不自动跟随重定向或绕过限制）")

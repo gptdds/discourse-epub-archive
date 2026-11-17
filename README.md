@@ -28,6 +28,9 @@ Discourse 公开主题整理为可离线阅读的 EPUB 3。站点地址由用户
 
 ## 快速启动
 
+最新修复版：
+[DiscourseEpubArchive v1.0.1](https://github.com/gptdds/discourse-epub-archive/releases/tag/v1.0.1)
+
 ### 打包版
 
 双击 `dist/DiscourseEpubArchive/DiscourseEpubArchive.exe`。该目录必须整体保留，
@@ -85,6 +88,11 @@ python -m venv .venv
 
 冷却时间和自适应间隔写入 SQLite，程序重启后不会立即重新请求。连续成功不会触发
 激进的提速，恢复后保持保守节奏。
+
+程序启动时读取系统配置的 HTTPS 代理（含 Windows 手动代理或代理环境变量），
+在本次运行期间固定使用；没有配置时直连。不会轮换代理、自动切换出口或读取
+`.netrc` 账号。系统代理变更后需重启软件；PAC 自动配置脚本暂不支持。
+公开 API 测试成功后会保存分类列表；失败会明确显示测试失败。
 
 ## 增量采集
 

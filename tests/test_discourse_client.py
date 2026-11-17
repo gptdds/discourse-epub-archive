@@ -58,6 +58,13 @@ def test_malformed_categories_raise_schema_error():
         client.categories()
 
 
+def test_empty_category_slug_uses_numeric_fallback():
+    url = BASE_URL + "/c/86-category/86.json"
+    scheduler = RoutingScheduler({url: {"topic_list": {"topics": [], "more_topics_url": None}}})
+    assert DiscourseClient(scheduler).category_page({"id": 86, "slug": ""}, 0) == ([], False)
+    assert scheduler.calls[-1][0] == url
+
+
 def test_topic_stream_fetches_missing_posts_in_batches():
     topic = {
         "post_stream": {
