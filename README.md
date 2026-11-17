@@ -29,7 +29,7 @@ Discourse 公开主题整理为可离线阅读的 EPUB 3。站点地址由用户
 ## 快速启动
 
 最新修复版：
-[DiscourseEpubArchive v1.0.1](https://github.com/gptdds/discourse-epub-archive/releases/tag/v1.0.1)
+[DiscourseEpubArchive v1.0.2](https://github.com/gptdds/discourse-epub-archive/releases/tag/v1.0.2)
 
 ### 打包版
 
@@ -68,6 +68,8 @@ python -m venv .venv
 6. 任务完成后前往「电子书管理」，选择分类生成 EPUB。
 
 站点地址默认为空。没有填写站点地址或没有确认授权时，程序不会发送任何网络请求。
+下载设置中的滚轮只用于上下滚动页面，不会修改数字或帖子范围；修改参数请直接输入、
+使用数字框箭头或点击下拉选项。
 
 ## 服务器保护与自适应限流
 

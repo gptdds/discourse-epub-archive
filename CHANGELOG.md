@@ -1,5 +1,20 @@
 # Changelog
 
+## v1.0.2 - 2026-11-17
+
+### Fixed
+
+- Forward mouse wheel events over download settings to the page instead of changing
+  numeric values or the reply selection, including when a control has focus.
+- Keep keyboard editing and explicit selection available.
+- Replace real category names in test fixtures with generic examples and clarify
+  that existing site addresses come from locally saved settings.
+
+### Verified
+
+- 73 automated tests pass, including wheel scrolling over all 10 settings controls
+  with and without focus and a blank site in a fresh workspace.
+
 ## v1.0.1 - 2026-11-17
 
 ### Fixed

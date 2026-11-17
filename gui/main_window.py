@@ -20,7 +20,7 @@ from core.download_manager import DownloadManager, TaskControl
 from core.epub_builder import EpubBuilder, EpubValidator
 from core.image_service import ImageService
 from core.scheduler import AccessDenied, Scheduler
-from gui.components import Card, Section, button, labeled, page_header, progress_row
+from gui.components import Card, Section, SettingsWheelFilter, button, labeled, page_header, progress_row
 from gui.theme import STYLE
 
 
@@ -470,6 +470,10 @@ class MainWindow(QMainWindow):
             paths.add(labeled(label, row))
         form.addWidget(paths)
         form.addStretch()
+        self.settings_wheel_filter = SettingsWheelFilter(scroll)
+        for field in content.findChildren(QWidget):
+            if isinstance(field, (QSpinBox, QDoubleSpinBox, QComboBox)):
+                field.installEventFilter(self.settings_wheel_filter)
         scroll.setWidget(content)
         layout.addWidget(scroll, 1)
         footer = QHBoxLayout()

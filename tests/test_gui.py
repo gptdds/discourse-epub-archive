@@ -3,7 +3,9 @@ import pytest
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QPoint, QPointF, Qt
+from PySide6.QtGui import QWheelEvent
+from PySide6.QtWidgets import QApplication, QComboBox, QScrollArea
 
 from core.download_manager import TaskControl
 from core.scheduler import Scheduler
@@ -76,4 +78,43 @@ def test_checked_categories_survive_search_filter(qtbot, db, settings, tmp_path,
 
     assert window.selected_hint.text() == "已选 2 个分类"
     assert {item[0] for item in window._checked_categories()} == {1, 2}
+    window.close()
+
+
+@pytest.mark.parametrize("field_name", [
+    "max_topics", "replies", "recent_days", "image_dimension", "image_quality",
+    "image_max_mb", "interval", "jitter", "retries", "timeout",
+])
+@pytest.mark.parametrize("focused", [False, True])
+def test_settings_wheel_scrolls_page_without_changing_values(
+        qtbot, db, settings, tmp_path, monkeypatch, field_name, focused):
+    monkeypatch.setenv("EPUB_ARCHIVE_HOME", str(tmp_path))
+    window = MainWindow(db, settings, Scheduler(db, settings, transport=FakeTransport([])))
+    qtbot.addWidget(window)
+    window.resize(1100, 760)
+    window._show_page(4)
+    window.show()
+    field = getattr(window, field_name)
+    scroll = window.pages.widget(4).findChild(QScrollArea)
+    qtbot.waitUntil(lambda: scroll.verticalScrollBar().maximum() > 0)
+    scroll.ensureWidgetVisible(field)
+    field.setFocus() if focused else window.base_url.setFocus()
+    QApplication.processEvents()
+    before_value = field.currentIndex() if isinstance(field, QComboBox) else field.value()
+    bar = scroll.verticalScrollBar()
+    before_scroll = bar.value()
+    delta = -120 if before_scroll < bar.maximum() else 120
+    position = field.rect().center()
+    event = QWheelEvent(QPointF(position), QPointF(field.mapToGlobal(position)),
+                        QPoint(), QPoint(0, delta), Qt.NoButton, Qt.NoModifier,
+                        Qt.NoScrollPhase, False)
+
+    QApplication.sendEvent(field, event)
+
+    after_value = field.currentIndex() if isinstance(field, QComboBox) else field.value()
+    assert after_value == before_value
+    assert bar.value() != before_scroll
+    qtbot.keyClick(field, Qt.Key_Down if isinstance(field, QComboBox) else Qt.Key_Up)
+    edited_value = field.currentIndex() if isinstance(field, QComboBox) else field.value()
+    assert edited_value != before_value
     window.close()

@@ -1,6 +1,26 @@
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import (QFrame, QHBoxLayout, QLabel, QProgressBar, QPushButton,
+from PySide6.QtCore import QEvent, QObject, QPointF, Qt
+from PySide6.QtGui import QWheelEvent
+from PySide6.QtWidgets import (QApplication, QFrame, QHBoxLayout, QLabel, QProgressBar, QPushButton,
                                QVBoxLayout, QWidget)
+
+
+class SettingsWheelFilter(QObject):
+    def __init__(self, scroll):
+        super().__init__(scroll)
+        self.scroll = scroll
+
+    def eventFilter(self, watched, event):
+        if event.type() == QEvent.Wheel:
+            viewport = self.scroll.viewport()
+            forwarded = QWheelEvent(
+                QPointF(viewport.mapFromGlobal(event.globalPosition().toPoint())),
+                event.globalPosition(), event.pixelDelta(), event.angleDelta(),
+                event.buttons(), event.modifiers(), event.phase(), event.inverted(),
+                event.source(), event.pointingDevice())
+            QApplication.sendEvent(viewport, forwarded)
+            event.accept()
+            return True
+        return super().eventFilter(watched, event)
 
 
 class Card(QFrame):
