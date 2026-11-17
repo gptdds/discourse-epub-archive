@@ -49,7 +49,7 @@ class FakeClient:
         self.pages = pages
         self.calls = []
 
-    def category_page(self, category, page):
+    def category_page(self, category, page, categories=None):
         self.calls.append(("page", category["id"], page))
         if self.pages is not None:
             rows = self.pages.get(page, [])

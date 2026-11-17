@@ -54,6 +54,7 @@ class DownloadManager:
         self.log(message)
 
     def discover(self):
+        categories = {row["id"]: row for row in self.database.rows("SELECT * FROM categories")}
         for cursor in self.database.rows("SELECT * FROM session_categories WHERE session_id=? ORDER BY category_id",
                                          (self.session_id,)):
             if cursor["done"]:
@@ -65,7 +66,7 @@ class DownloadManager:
             while True:
                 self.control.checkpoint()
                 self._current(f"扫描分类「{category['name']}」第 {page + 1} 页")
-                topics, more = self.client.category_page(category, page)
+                topics, more = self.client.category_page(category, page, categories)
                 accepted = []
                 new_count = 0
                 old_count = 0

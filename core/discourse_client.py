@@ -19,6 +19,27 @@ def normalize_base_url(value):
     return f"https://{parsed.netloc}"
 
 
+def category_path(category, categories=None):
+    categories = categories or {}
+    chain = []
+    current = category
+    visited = set()
+    while current:
+        category_id = current.get("id")
+        if not isinstance(category_id, int) or category_id in visited:
+            raise SchemaError("分类层级包含非法或循环的 ID")
+        visited.add(category_id)
+        slug = current.get("slug") or f"{category_id}-category"
+        chain.append((category_id, slug))
+        parent_id = current.get("parent_id", current.get("parent_category_id"))
+        if not parent_id:
+            break
+        current = categories.get(parent_id) or {"id": parent_id, "slug": ""}
+    chain.reverse()
+    segments = "/".join(quote(slug, safe="") for _, slug in chain)
+    return f"/c/{segments}/{category['id']}.json"
+
+
 class SchemaError(RequestError):
     pass
 
@@ -150,9 +171,8 @@ class DiscourseClient:
         collect(items)
         return list(categories.values())
 
-    def category_page(self, category, page):
-        slug = category["slug"] or f"{category['id']}-category"
-        path = f"/c/{quote(slug, safe='')}/{category['id']}.json"
+    def category_page(self, category, page, categories=None):
+        path = category_path(category, categories)
         data = self.get_json(path, {"page": page, "order": "latest", "ascending": "false",
                                     "no_subcategories": "true"})
         listing = require(data.get("topic_list"), dict, "topic_list")

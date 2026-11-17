@@ -65,6 +65,28 @@ def test_empty_category_slug_uses_numeric_fallback():
     assert scheduler.calls[-1][0] == url
 
 
+def test_subcategory_path_includes_parent_fallbacks():
+    url = BASE_URL + "/c/14-category/7-category/7.json"
+    scheduler = RoutingScheduler({url: {"topic_list": {"topics": [], "more_topics_url": None}}})
+    categories = {
+        14: {"id": 14, "slug": "", "parent_id": None},
+        7: {"id": 7, "slug": "", "parent_id": 14},
+    }
+    assert DiscourseClient(scheduler).category_page(categories[7], 0, categories) == ([], False)
+    assert scheduler.calls[-1][0] == url
+
+
+def test_subcategory_path_uses_parent_slug_when_available():
+    url = BASE_URL + "/c/parent/7-category/7.json"
+    scheduler = RoutingScheduler({url: {"topic_list": {"topics": [], "more_topics_url": None}}})
+    categories = {
+        14: {"id": 14, "slug": "parent", "parent_id": None},
+        7: {"id": 7, "slug": "", "parent_id": 14},
+    }
+    assert DiscourseClient(scheduler).category_page(categories[7], 0, categories) == ([], False)
+    assert scheduler.calls[-1][0] == url
+
+
 def test_topic_stream_fetches_missing_posts_in_batches():
     topic = {
         "post_stream": {

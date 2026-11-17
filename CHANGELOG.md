@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.0.3 - 2026-11-17
+
+### Fixed
+
+- Build Discourse category routes with every parent category so child categories
+  do not fail on the site's canonical 301 redirect.
+- Preserve the existing no-redirect policy instead of following redirects.
+
+### Verified
+
+- 75 automated tests pass, including parent/child category route generation.
+- Packaged GUI test collected 2/2 topics from a child category with 0 failures;
+  the generated EPUB passed EPUBCheck with 0 fatals / 0 errors / 0 warnings / 0 infos.
+
 ## v1.0.2 - 2026-11-17
 
 ### Fixed

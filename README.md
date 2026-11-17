@@ -29,7 +29,7 @@ Discourse 公开主题整理为可离线阅读的 EPUB 3。站点地址由用户
 ## 快速启动
 
 最新修复版：
-[DiscourseEpubArchive v1.0.2](https://github.com/gptdds/discourse-epub-archive/releases/tag/v1.0.2)
+[DiscourseEpubArchive v1.0.3](https://github.com/gptdds/discourse-epub-archive/releases/tag/v1.0.3)
 
 ### 打包版
 
