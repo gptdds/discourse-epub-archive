@@ -63,8 +63,8 @@ def test_api_badge_matches_actual_job_result(qtbot, db, settings, tmp_path, monk
 def test_checked_categories_survive_search_filter(qtbot, db, settings, tmp_path, monkeypatch):
     monkeypatch.setenv("EPUB_ARCHIVE_HOME", str(tmp_path))
     db.save_categories([
-        {"id": 17, "name": "历史资料", "slug": "history", "topic_count": 1},
-        {"id": 86, "name": "自然辩证法", "slug": "dialectics", "topic_count": 1},
+        {"id": 1, "name": "示例分类甲", "slug": "sample-a", "topic_count": 1},
+        {"id": 2, "name": "示例分类乙", "slug": "sample-b", "topic_count": 1},
     ])
     window = MainWindow(db, settings, Scheduler(db, settings, transport=FakeTransport([])))
     qtbot.addWidget(window)
@@ -72,8 +72,8 @@ def test_checked_categories_survive_search_filter(qtbot, db, settings, tmp_path,
     for row in range(window.category_table.rowCount()):
         window.category_table.item(row, 0).setCheckState(Qt.Checked)
 
-    window.category_search.setText("自然辩证法")
+    window.category_search.setText("示例分类乙")
 
     assert window.selected_hint.text() == "已选 2 个分类"
-    assert {item[0] for item in window._checked_categories()} == {17, 86}
+    assert {item[0] for item in window._checked_categories()} == {1, 2}
     window.close()

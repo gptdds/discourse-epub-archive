@@ -8,6 +8,13 @@ from core.scheduler import AccessDenied, RequestError, Scheduler
 from tests.conftest import FakeClock, FakeResponse, FakeTransport
 
 
+def test_fresh_workspace_has_no_site_or_network_permission(tmp_path):
+    settings = Settings.load(tmp_path)
+    assert settings.base_url == ""
+    assert settings.permission_confirmed is False
+    assert settings.permission_note == ""
+
+
 @pytest.mark.parametrize("url", [
     "http://forum.example.com",
     "https://forum.example.com/path",

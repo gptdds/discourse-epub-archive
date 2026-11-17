@@ -53,6 +53,10 @@ python -m venv .venv
 `%LOCALAPPDATA%\DiscourseEpubArchive`。设置环境变量 `EPUB_ARCHIVE_HOME` 可以指定
 独立工作目录。
 
+默认站点地址为空。升级或更换程序目录后，软件仍会读取上述工作目录中
+`data/settings.json` 保存的站点地址；界面里已有的网址不代表发布包预设了站点。
+如需取消已保存的站点，在「下载设置」中清空地址、取消授权勾选并保存。
+
 ## 首次使用
 
 1. 打开「下载设置」，填写目标 Discourse 站点的 HTTPS 根地址，例如
